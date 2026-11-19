@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Survive the Horde</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="game-scaler">
+      <audio
+        id="background-music"
+        src="https://vmt.tail7e5fd1.ts.net/survive-the-horde/music/BackgroundMusic.mp3"
+        loop
+        preload="auto"
+        hidden
+      ></audio>
+      <div id="header">
+        <div id="game-title">&#9876; SURVIVE THE HORDE</div>
+        <div class="hdr-right">
+          <span id="player-chip" class="player-chip hidden"></span>
+          <a
+            id="coffee-btn"
+            href="https://vmt.tail7e5fd1.ts.net/fr.png"
+            target="_blank"
+            rel="noopener noreferrer"
+            >☕ Buy Me a Coffee</a
+          >
+          <button
+            id="skills-btn"
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="skill-guide-modal"
+          >
+            Skill Tree
+          </button>
+          <button id="sfx-btn">SFX: ON</button>
+          <label class="music-control" for="music-volume">
+            MUSIC
+            <input
+              id="music-volume"
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value="50"
+              aria-label="Background music volume"
+            />
+          </label>
+          <button id="my-btn">My Scores</button>
+        </div>
+      </div>
+
+      <div id="top-bar">
+        <div class="stat-group">
+          <div>
+            HP
+            <div class="bar-wrap"><div id="hp-fill"></div></div>
+            <span id="hp-label">100/100</span>
+          </div>
+          <div>
+            LVL <strong id="lvl-label">1</strong>
+            <div class="bar-wrap"><div id="xp-fill"></div></div>
+          </div>
+        </div>
+        <div id="timer">00:00</div>
+        <div class="stat-group">
+          <div id="boss-countdown">Next Boss: 01:00</div>
+          <div>Kills: <strong id="kills-label">0</strong></div>
+        </div>
+      </div>
+
+      <div id="game-wrapper">
+        <canvas id="gameCanvas" width="900" height="560"></canvas>
+        <div id="weapon-bar"></div>
+        <!-- Mobile controls overlay -->
+        <div id="mobile-controls">
+          <button id="pause-mobile-btn" title="Pause">⏸</button>
+        </div>
+
+        <!-- Player Name Modal -->
+        <div id="name-modal" class="overlay-modal">
+          <div class="game-logo">SURVIVE<br />THE HORDE</div>
+          <div id="cast-row"></div>
+          <label class="name-label" for="name-input"
+            >Enter your player name</label
+          >
+          <input
+            id="name-input"
+            type="text"
+            maxlength="16"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Your name"
+          />
+          <div id="name-error" class="form-error"></div>
+          <button id="name-start-btn" class="action-btn">Start Game</button>
+          <button
+            id="quick-play-btn"
+            class="action-btn secondary"
+            type="button"
+          >
+            Just Play (No Leaderboard)
+          </button>
+          <button id="name-skills-btn" class="action-btn secondary">
+            Skill Tree &amp; Combos
+          </button>
+        </div>
+
+        <!-- Champion Selection Modal -->
+        <div id="char-modal" class="overlay-modal hidden">
+          <div class="modal-title">Choose Your Champion</div>
+          <div id="char-mode-subtitle" class="modal-sub">
+            Survive escalating hordes &amp; dodge telegraphed Overlord boss
+            attacks!
+          </div>
+          <div class="card-grid" id="char-grid"></div>
+          <div class="modal-sub" style="margin: 16px 0 0">
+            Playing as
+            <strong id="char-player-name" style="color: #ffd166"></strong>
+            <button
+              id="change-name-btn"
+              class="link-btn"
+              style="margin: 0 0 0 8px"
+            >
+              Change name
+            </button>
+          </div>
+          <button id="char-skills-btn" class="link-btn">
+            View Skill Tree &amp; Combos
+          </button>
+          <button
+            id="char-title-btn"
+            class="action-btn secondary"
+            type="button"
+          >
+            Back to Title
+          </button>
+        </div>
+
+        <!-- Level Up Draft Modal -->
+        <div id="levelup-modal" class="overlay-modal hidden">
+          <div class="modal-title">Level Up!</div>
+          <div class="modal-sub">
+            Select an upgrade or fuse a max-level weapon with its catalyst
+          </div>
+          <div class="card-grid" id="draft-grid"></div>
+        </div>
+
+        <!-- Boss Chest Roulette Modal -->
+        <div id="chest-modal" class="overlay-modal hidden">
+          <div class="modal-title">Overlord Chest Unlocked!</div>
+          <div id="chest-roulette-box">
+            <div class="card-tag">Relic Roulette</div>
+            <div id="roulette-item">Spinning...</div>
+            <div id="roulette-desc"></div>
+            <button id="claim-chest-btn" class="action-btn hidden">
+              Claim Relic
+            </button>
+          </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameover-modal" class="overlay-modal hidden">
+          <div class="modal-title" style="color: #ef476f">Fallen in Battle</div>
+          <div
+            class="modal-sub"
+            id="gameover-stats"
+            style="margin-bottom: 8px"
+          ></div>
+          <div class="save-status" id="gameover-save"></div>
+          <div class="btn-row">
+            <button id="restart-btn" class="action-btn">Play Again</button>
+            <button id="gameover-scores-btn" class="action-btn secondary">
+              My Scores
+            </button>
+            <button
+              id="gameover-title-btn"
+              class="action-btn secondary"
+              type="button"
+            >
+              Back to Title
+            </button>
+          </div>
+        </div>
+
+        <!-- Scores Modal (My Scores / Leaderboard) -->
+        <div id="scores-modal" class="overlay-modal hidden">
+          <div class="modal-title" style="margin-bottom: 12px">Scores</div>
+          <div class="tab-row">
+            <button class="tab-btn active" data-tab="my">My Scores</button>
+            <button class="tab-btn" data-tab="top">Leaderboard</button>
+          </div>
+          <div class="sort-row hidden" id="score-sort-row">
+            <button class="chip active" data-sort="kills">Most kills</button>
+            <button class="chip" data-sort="time">Longest survival</button>
+          </div>
+          <div class="score-summary" id="score-summary"></div>
+          <div class="score-table-wrap" id="score-table-wrap"></div>
+          <div class="score-status" id="score-status"></div>
+          <button id="scores-close-btn" class="action-btn">Close</button>
+        </div>
+
+        <!-- Skill Tree and Combinations Modal -->
+        <div
+          id="skill-guide-modal"
+          class="overlay-modal hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="skill-guide-title"
+        >
+          <div class="modal-title" id="skill-guide-title">
+            Skill Tree &amp; Combos
+          </div>
+          <div class="modal-sub">
+            Build your weapons, match their catalyst relics, and unlock
+            evolutions.
+          </div>
+          <div id="skill-guide-content" class="skill-guide-content"></div>
+          <div class="skill-guide-actions">
+            <button id="skill-guide-close-btn" class="action-btn">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- #game-scaler -->
+
+    <script src="game.js"></script>
+  </body>
+</html>
